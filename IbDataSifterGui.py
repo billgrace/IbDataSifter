@@ -19,6 +19,7 @@ def PrepareGui():
 	SharedVars.GuiOutputPathLabel.place(anchor='nw', relx=0.01,rely=0.08)
 	# File system - logged data
 	SharedVars.GuiLogDateListBox.place(anchor='nw', relx=0.01,rely=0.12)
+	SharedVars.GuiLogDateListBox.configure()
 	for date in SharedVars.TradedDayDirectories:
 		SharedVars.GuiLogDateListBox.insert(tkinter.END, date)
 
