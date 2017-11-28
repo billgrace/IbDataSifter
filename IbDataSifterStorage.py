@@ -7,6 +7,7 @@ import IbDataSifterStorage
 def PrepareDataStorage():
 	InputDirectoryList = os.listdir(SharedVars.InputDirectoryPath)
 	InputDirectoryList.sort()
+	# SharedVars.GuiMessageLabel.configure(text='len(LogDateFileList)' + str(len(InputDirectoryList)))
 	for CurrentIndex in range(0, len(InputDirectoryList)-1):
 		CurrentDirectory = InputDirectoryList[CurrentIndex]
 		if CurrentDirectory[0] != '2':
@@ -50,3 +51,12 @@ def ReadPreferencesFile():
 	except Exception as e:
 		IbDataSifterUtilities.LogError('unable to open Preferences.cfg - ' + str(e))
 
+def OpenLogDate(SelectedDateText):
+	LogDateDirectoryPath = SharedVars.InputDirectoryPath + '/' + SelectedDateText
+	LogDateFileList = os.listdir(LogDateDirectoryPath)
+	LogDateFileList.sort()
+	SharedVars.GuiMessageLabel.configure(text='len(LogDateFileList)' + str(len(LogDateFileList)))
+	# return
+	FirstFile = LogDateFileList[0]
+	LastFile = LogDateFileList[-1]
+	SharedVars.GuiMessageLabel.configure(text='First: ' + FirstFile + ', Last: ' + LastFile)
