@@ -1,8 +1,10 @@
 import os
+import io
+import avro.datafile
 
 import SharedVars
+import IbDataSifterClasses
 import IbDataSifterGui
-import IbDataSifterStorage
 import IbDataSifterUtilities
 
 def PrepareDataStorage():
@@ -55,8 +57,8 @@ def ReadPreferencesFile():
 def SelectLogDate(SelectedDateText):
 	# Get the list of all files in the given date's directory
 	SharedVars.CurrentlyOpenTradedDayDirectory = SelectedDateText
-	LogDateDirectoryPath = SharedVars.InputDirectoryPath + '/' + SelectedDateText
-	LogDateFileList = os.listdir(LogDateDirectoryPath)
+	SharedVars.LogDateDirectoryPath = SharedVars.InputDirectoryPath + '/' + SelectedDateText
+	LogDateFileList = os.listdir(SharedVars.LogDateDirectoryPath)
 	LogDateFileList.sort()
 	# Scan the sorted list of all files and extract items of interest
 	SharedVars.LoggedFilesInCurrentDate.clear()
@@ -91,7 +93,26 @@ def SelectLogDate(SelectedDateText):
 	SharedVars.LoggedExpirationDatesInCurrentDate.sort()
 	# Show the list of files in this date's directory
 	IbDataSifterGui.GuiFillLoggedFilesListBox(SelectedDateText)
+	# Import all the data files for the selected date
+	ImportLoggedDataDate(SelectedDateText)
 	# Show the date's logged underlying open, high, low, close
+	for ImportedFileObject in SharedVars.ImportedDataFileList:
+		if ImportedFileObject['FileName'] == 'SPX-Underlying':
+			UnderlyingOpen = ImportedFileObject['FileRecordList'][0]['Last']['Price']
+			UnderlyingClose = ImportedFileObject['FileRecordList'][-1]['Last']['Price']
+			UnderlyingHigh = -1000000.0
+			UnderlyingLow = 1000000.0
+			for ImportedFileRecord in ImportedFileObject['FileRecordList']:
+				RecordPrice = ImportedFileRecord['Last']['Price']
+				if RecordPrice > UnderlyingHigh:
+					UnderlyingHigh = RecordPrice
+				if RecordPrice < UnderlyingLow:
+					UnderlyingLow = RecordPrice
+	SharedVars.GuiUnderlyingLabel.configure(text='SPX Open: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingOpen) +
+													', High: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingHigh) +
+													', Low: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingLow) +
+													', Close: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingClose)
+													)
 	# Show the date's logged option strike price range
 	IbDataSifterGui.GuiFillStrikePriceListBox()
 	# Show the date's logged option expiration dates
@@ -101,3 +122,40 @@ def SelectLogFile(FileName):
 	# Distinguish between underlying and option
 	Symbol, ExpirationString, Year, Month, Day, Strike, Right = IbDataSifterUtilities.ParseFileName(FileName)
 	SharedVars.GuiDevelopmentMessageLabel.configure(text='[' + Symbol + '][' + ExpirationString + '][' + Year + '][' + Month + '][' + Day + '][' + Strike + '][' + Right + ']')
+
+def ImportLoggedDataDate(SelectedDateText):
+	ClearImportedDataFileList()
+	ImportLoggedDataFile('SPX-Underlying')
+
+def ClearImportedDataFileList():
+	# First traverse any existing imported file entries and delete each one's list of file records
+	for ImportedFile in SharedVars.ImportedDataFileList:
+		ImportedFile['FileRecordList'].clear()
+	# Then delete the top level list
+	SharedVars.ImportedDataFileList.clear()
+
+def ImportLoggedDataFile(FileName):
+	DataFileObject = IbDataSifterClasses.ImportedDataFileClass()
+	DataFileObject['FileName'] = FileName
+	FileToImport = open(SharedVars.LogDateDirectoryPath + '/' + FileName, 'r')
+	LineNumber = 0
+	for Line in FileToImport:
+		LineNumber += 1
+		FileRecordObject = IbDataSifterClasses.LoggedDataRecordClass()
+		try:
+			TimeStamp, AvroSerializedRecordString = Line.split('---')
+			FileRecordObject['TimeStamp'] = TimeStamp
+			ByteBufferAvro = io.BytesIO(bytes(AvroSerializedRecordString, 'utf-8'))
+			ByteBufferAvro.seek(0)
+			reader = avro.datafile.DataFileReader(ByteBufferAvro, avro.io.DatumReader())
+			for datum in reader:
+				MonitorDataObject = datum
+			ByteBufferAvro.close()
+			reader.close()
+			FileRecordObject['MonitorData'] = MonitorDataObject
+		except Exception as e:
+			ByteBufferAvro.close()
+			reader.close()
+			IbDataSifterUtilities.LogError('Exception in DeserializeObect: ' + str(e))
+		DataFileObject['FileRecordList'].append(FileRecordObject)
+

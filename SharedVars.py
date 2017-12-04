@@ -1,4 +1,5 @@
 import tkinter
+import IbDataSifterClasses
 import IbDataSifterGui
 
 # Preferences file items
@@ -12,13 +13,33 @@ LoggedFilesInCurrentDate = []
 LoggedStrikePricesInCurrentDate = []
 LoggedExpirationDatesInCurrentDate = []
 
-# Gui
+# Imported data
+LogDateDirectoryPath = ''
+ImportedDataFileList = []
+UnderlyingOpen = 0.0
+UnderlyingHigh = 0.0
+UnderlyingLow = 0.0
+UnderlyingClose = 0.0
+
+# Gui - General
+GuiMainWindowWidth = 1000
+GuiMainWindowHeight = 700
+GuiMainWindowLeft = 10
+GuiMainWindowTop = 10
+GuiListBoxLabelTopY = 0.14
+GuiListBoxTopY = 0.18
+GuiListBoxHeight = 10
+GuiLogDateListBoxLeftX = 0.01
+GuiLogFilesListBoxLeftX = 0.21
+GuiUnderlyingSummaryLeftX = 0.51
 GuiRefreshInterval = 300
 GuiWindow = tkinter.Tk()
 
-# Gui - File system
+# Gui - Directory paths
 GuiInputPathLabel = tkinter.Label(GuiWindow)
 GuiOutputPathLabel = tkinter.Label(GuiWindow)
+
+# Gui - Logged data selection and display
 GuiLogDateListBoxLabel = tkinter.Label(GuiWindow, text='Logged data dates')
 GuiLogDateListBox = tkinter.Listbox(GuiWindow)
 GuiLogFilesListBoxLabel = tkinter.Label(GuiWindow, text='Files logged on - - -')

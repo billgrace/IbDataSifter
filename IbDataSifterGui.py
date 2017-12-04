@@ -2,16 +2,14 @@ import time
 import tkinter
 
 import IbDataSifter
+import IbDataSifterClasses
 import IbDataSifterStorage
+import IbDataSifterUtilities
 import SharedVars
 
 def PrepareGui():
-	GuiMainWindowLeft = 10
-	GuiMainWindowTop = 10
-	GuiMainWindowWidth = 800
-	GuiMainWindowHeight = 600
 	GuiMainWindowBackgroundColor = 'magenta'
-	SharedVars.GuiWindow.geometry(str(GuiMainWindowWidth) + 'x' + str(GuiMainWindowHeight) + '+' + str(GuiMainWindowLeft) + '+' + str(GuiMainWindowTop))
+	SharedVars.GuiWindow.geometry(str(SharedVars.GuiMainWindowWidth) + 'x' + str(SharedVars.GuiMainWindowHeight) + '+' + str(SharedVars.GuiMainWindowLeft) + '+' + str(SharedVars.GuiMainWindowTop))
 	SharedVars.GuiWindow.configure(background=GuiMainWindowBackgroundColor)
 	SharedVars.GuiWindow.resizable(True, True)
 
@@ -19,29 +17,23 @@ def PrepareGui():
 	SharedVars.GuiInputPathLabel.place(anchor='nw', relx=0.01,rely=0.04)
 	SharedVars.GuiOutputPathLabel.place(anchor='nw', relx=0.01,rely=0.08)
 	# File system - logged data date list
-	GuiListBoxLabelTopY = 0.14
-	GuiListBoxTopY = 0.18
-	GuiListBoxHeight = 10
-	GuiLogDateListBoxLeftX = 0.01
-	SharedVars.GuiLogDateListBoxLabel.place(anchor='nw', relx=GuiLogDateListBoxLeftX,rely=GuiListBoxLabelTopY)
-	SharedVars.GuiLogDateListBox.place(anchor='nw', relx=GuiLogDateListBoxLeftX,rely=GuiListBoxTopY)
-	SharedVars.GuiLogDateListBox.configure(width=10, height=GuiListBoxHeight)
+	SharedVars.GuiLogDateListBoxLabel.place(anchor='nw', relx=SharedVars.GuiLogDateListBoxLeftX,rely=SharedVars.GuiListBoxLabelTopY)
+	SharedVars.GuiLogDateListBox.place(anchor='nw', relx=SharedVars.GuiLogDateListBoxLeftX,rely=SharedVars.GuiListBoxTopY)
+	SharedVars.GuiLogDateListBox.configure(width=10, height=SharedVars.GuiListBoxHeight)
 	SharedVars.GuiLogDateListBox.bind('<<ListboxSelect>>', GuiLogDateListBoxCallback)
 	for date in SharedVars.TradedDayDirectories:
 		SharedVars.GuiLogDateListBox.insert(tkinter.END, date)
 	# File system - logged data file list
-	GuiLogFilesListBoxLeftX = 0.21
-	SharedVars.GuiLogFilesListBoxLabel.place(anchor='nw', relx=GuiLogFilesListBoxLeftX,rely=GuiListBoxLabelTopY)
-	SharedVars.GuiLogFilesListBox.place(anchor='nw', relx=0.21, rely=GuiListBoxTopY)
-	SharedVars.GuiLogFilesListBox.configure(width=22,height=GuiListBoxHeight)
+	SharedVars.GuiLogFilesListBoxLabel.place(anchor='nw', relx=SharedVars.GuiLogFilesListBoxLeftX,rely=SharedVars.GuiListBoxLabelTopY)
+	SharedVars.GuiLogFilesListBox.place(anchor='nw', relx=0.21, rely=SharedVars.GuiListBoxTopY)
+	SharedVars.GuiLogFilesListBox.configure(width=22,height=SharedVars.GuiListBoxHeight)
 	SharedVars.GuiLogFilesListBox.bind('<<ListboxSelect>>', GuiLoggedFilesListBoxCallback)
 	# File system - Logged day summary
-	GuiUnderlyingSummaryLeftX = 0.51
-	SharedVars.GuiUnderlyingLabel.place(anchor='nw', relx=GuiUnderlyingSummaryLeftX,rely=GuiListBoxLabelTopY)
-	SharedVars.GuiStrikePriceListBoxLabel.place(anchor='nw', relx=GuiUnderlyingSummaryLeftX,rely=GuiListBoxLabelTopY+0.05)
-	SharedVars.GuiStrikePriceListBox.place(anchor='nw', relx=GuiUnderlyingSummaryLeftX,rely=GuiListBoxLabelTopY+0.10)
-	SharedVars.GuiExpirationDateListBoxLabel.place(anchor='nw', relx=GuiUnderlyingSummaryLeftX+0.25,rely=GuiListBoxLabelTopY+0.05)
-	SharedVars.GuiExpirationDateListBox.place(anchor='nw', relx=GuiUnderlyingSummaryLeftX+0.25,rely=GuiListBoxLabelTopY+0.10)
+	SharedVars.GuiUnderlyingLabel.place(anchor='nw', relx=SharedVars.GuiUnderlyingSummaryLeftX,rely=SharedVars.GuiListBoxLabelTopY)
+	SharedVars.GuiStrikePriceListBoxLabel.place(anchor='nw', relx=SharedVars.GuiUnderlyingSummaryLeftX,rely=SharedVars.GuiListBoxLabelTopY+0.05)
+	SharedVars.GuiStrikePriceListBox.place(anchor='nw', relx=SharedVars.GuiUnderlyingSummaryLeftX,rely=SharedVars.GuiListBoxLabelTopY+0.10)
+	SharedVars.GuiExpirationDateListBoxLabel.place(anchor='nw', relx=SharedVars.GuiUnderlyingSummaryLeftX+0.25,rely=SharedVars.GuiListBoxLabelTopY+0.05)
+	SharedVars.GuiExpirationDateListBox.place(anchor='nw', relx=SharedVars.GuiUnderlyingSummaryLeftX+0.25,rely=SharedVars.GuiListBoxLabelTopY+0.10)
 
 	# Sifting
 	SharedVars.GuiSiftButton.place(anchor='se', relx=0.85, rely=0.99)

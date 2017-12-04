@@ -2,10 +2,13 @@
 import sys
 
 import SharedVars
+import IbDataSifterClasses
 import IbDataSifterGui
+import IbDataSifterUtilities
 import IbDataSifterStorage
 
 def Main():
+	IbDataSifterUtilities.InitializeEventBindings()
 	IbDataSifterStorage.ReadPreferencesFile()
 	IbDataSifterStorage.PrepareDataStorage()
 	IbDataSifterGui.PrepareGui()

@@ -1,4 +1,11 @@
 import SharedVars
+import IbDataSifterClasses
+import IbDataSifterGui
+import IbDataSifterStorage
+import IbDataSifterClasses
+
+def InitializeEventBindings():
+	SharedVars.GuiWindow.bind_all('<Shift-KeyPress-F4>', OnShiftF4KeyPress)
 
 def ParseFileName(FileName):
 	# Parse a filename in the form: <Symbol>-YYYY-MM-DD-SSSS-<right>
@@ -22,9 +29,19 @@ def ParseFileName(FileName):
 		Right = FileName[FirstDashIndex+17:]
 	return Symbol, ExpirationString, Year, Month, Day, Strike, Right
 
+def OnShiftF4KeyPress(KeyPressEvent):
+	# Shift-F4 => close the application
+	SharedVars.GuiWindow.destroy()
+
 def LogError(message):
 	ErrorTimeStamp = datetime.datetime.now()
 	ErrorTimeString = '{0:%A} {0:%B} {0:%d}, {0:%Y} @ {0:%I:%M%p} '.format(ErrorTimeStamp)
 	FormattedErrorString = ErrorTimeString + message
 	SharedVars.GuiMessageLabel.config(text=FormattedErrorString)
 	print(FormattedErrorString)
+
+def StringFormatDollars(FloatAmount):
+	return '${:,.2f}'.format(FloatAmount)
+
+def StringFormatGreek(FloatAmount):
+	return '{:,0.4f}'.format(FloatAmount)
