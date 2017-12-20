@@ -1,4 +1,5 @@
 import SharedVars
+import IbDataSifterEnums
 
 class ExpirationDateClass(dict):
 	def __init__(self):
@@ -26,8 +27,8 @@ class MonitorDataClass(dict):
 		boc = OptionCompStructureClass()
 		loc = OptionCompStructureClass()
 		moc = OptionCompStructureClass()
-		self['MonitorStatus'] = IbDataLoggerEnums.RequestedMonitorStatus['NotSpecified'].name
-		self['RequestSuccessCode'] = IbDataLoggerEnums.ReadRequestResultReturnCode['NotSpecified'].name
+		self['MonitorStatus'] = IbDataSifterEnums.RequestedMonitorStatus['NotSpecified'].name
+		self['RequestSuccessCode'] = IbDataSifterEnums.ReadRequestResultReturnCode['NotSpecified'].name
 		self['SequenceNumber'] = 0
 		self['MonitorStartMilliseconds'] = 0
 		self['MonitorLastUpdateMilliseconds'] = 0
@@ -57,8 +58,8 @@ class LoggedDataRecordTimeStampClass(dict):
 
 class LoggedDataRecordClass(dict):
 	def __init__(self):
-		self['TimeStamp'] = LoggedDataRecordTimeStampClass
-		self['MonitorData'] = MonitorDataClass
+		self['TimeStamp'] = LoggedDataRecordTimeStampClass()
+		self['MonitorData'] = MonitorDataClass()
 
 class ImportedDataFileClass(dict):
 	def __init__(self):

@@ -1,4 +1,5 @@
 import tkinter
+import avro.schema
 import IbDataSifterClasses
 import IbDataSifterGui
 
@@ -56,3 +57,6 @@ GuiSiftButton = tkinter.Button(GuiWindow, text='Sift', command=IbDataSifterGui.G
 # Gui - Miscellaneous
 GuiDevelopmentMessageLabel = tkinter.Label(GuiWindow, text='(development message space)', fg='#055', bg='#8ff')
 GuiExitButton = tkinter.Button(GuiWindow, text='Exit', command=IbDataSifterGui.ExitGui)
+
+# Schemas
+MonitorDataReaderSchema = avro.schema.Parse(open("schemas/MonitorDataReaderSchema.txt").read())

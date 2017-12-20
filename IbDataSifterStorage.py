@@ -1,6 +1,7 @@
 import os
 import io
 import avro.datafile
+import avro.io
 
 import SharedVars
 import IbDataSifterClasses
@@ -10,7 +11,6 @@ import IbDataSifterUtilities
 def PrepareDataStorage():
 	InputDirectoryList = os.listdir(SharedVars.InputDirectoryPath)
 	InputDirectoryList.sort()
-	# SharedVars.GuiMessageLabel.configure(text='len(LogDateFileList)' + str(len(InputDirectoryList)))
 	for CurrentIndex in range(0, len(InputDirectoryList)-1):
 		CurrentDirectory = InputDirectoryList[CurrentIndex]
 		if CurrentDirectory[0] != '2':
@@ -98,21 +98,27 @@ def SelectLogDate(SelectedDateText):
 	# Show the date's logged underlying open, high, low, close
 	for ImportedFileObject in SharedVars.ImportedDataFileList:
 		if ImportedFileObject['FileName'] == 'SPX-Underlying':
-			UnderlyingOpen = ImportedFileObject['FileRecordList'][0]['Last']['Price']
-			UnderlyingClose = ImportedFileObject['FileRecordList'][-1]['Last']['Price']
+			ImportedUnderlyingRecordList = ImportedFileObject['FileRecordList']
+			FirstImportedMonitorData = ImportedUnderlyingRecordList[0]['MonitorData']
+			print('FirstImportedMonitorData:')
+			print(FirstImportedMonitorData)
+			print('FirstImportedMonitorData[StrikePrice]')
+			print(FirstImportedMonitorData['StrikePrice'])
+			UnderlyingOpen = ImportedUnderlyingRecordList[0]['MonitorData']['Last']['Price']
+			UnderlyingClose = ImportedUnderlyingRecordList[-1]['MonitorData']['Last']['Price']
 			UnderlyingHigh = -1000000.0
 			UnderlyingLow = 1000000.0
 			for ImportedFileRecord in ImportedFileObject['FileRecordList']:
-				RecordPrice = ImportedFileRecord['Last']['Price']
+				RecordPrice = ImportedFileRecord['MonitorData']['Last']['Price']
 				if RecordPrice > UnderlyingHigh:
 					UnderlyingHigh = RecordPrice
 				if RecordPrice < UnderlyingLow:
 					UnderlyingLow = RecordPrice
-	SharedVars.GuiUnderlyingLabel.configure(text='SPX Open: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingOpen) +
-													', High: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingHigh) +
-													', Low: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingLow) +
-													', Close: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingClose)
-													)
+	# SharedVars.GuiUnderlyingLabel.configure(text='SPX Open: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingOpen) +
+	# 												', High: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingHigh) +
+	# 												', Low: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingLow) +
+	# 												', Close: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingClose)
+	# 												)
 	# Show the date's logged option strike price range
 	IbDataSifterGui.GuiFillStrikePriceListBox()
 	# Show the date's logged option expiration dates
@@ -141,21 +147,28 @@ def ImportLoggedDataFile(FileName):
 	LineNumber = 0
 	for Line in FileToImport:
 		LineNumber += 1
-		FileRecordObject = IbDataSifterClasses.LoggedDataRecordClass()
-		try:
-			TimeStamp, AvroSerializedRecordString = Line.split('---')
-			FileRecordObject['TimeStamp'] = TimeStamp
-			ByteBufferAvro = io.BytesIO(bytes(AvroSerializedRecordString, 'utf-8'))
-			ByteBufferAvro.seek(0)
-			reader = avro.datafile.DataFileReader(ByteBufferAvro, avro.io.DatumReader())
-			for datum in reader:
-				MonitorDataObject = datum
-			ByteBufferAvro.close()
-			reader.close()
-			FileRecordObject['MonitorData'] = MonitorDataObject
-		except Exception as e:
-			ByteBufferAvro.close()
-			reader.close()
-			IbDataSifterUtilities.LogError('Exception in DeserializeObect: ' + str(e))
-		DataFileObject['FileRecordList'].append(FileRecordObject)
-
+		if LineNumber <= 10:
+			FileRecordObject = IbDataSifterClasses.LoggedDataRecordClass()
+			MonitorDataObject = IbDataSifterClasses.MonitorDataClass()
+			try:
+				TimeStampString, AvroStringWithByteTags = Line.split('---')
+				TimeStampObject = IbDataSifterClasses.LoggedDataRecordTimeStampClass()
+				TimeStampObject['Hour'] = int(TimeStampString[0:2])
+				TimeStampObject['Minute'] = int(TimeStampString[3:5])
+				TimeStampObject['Second'] = int(TimeStampString[6:8])
+				TimeStampObject['Millisecond'] = int(TimeStampString[9:12])
+				FileRecordObject['TimeStamp'] = TimeStampObject
+				AvroString = AvroStringWithByteTags[2:-2]
+				AvroByteArray = IbDataSifterUtilities.DecodeStringToBytes(AvroString)
+				AvroByteStream = io.BytesIO(AvroByteArray)
+				reader = avro.datafile.DataFileReader(AvroByteStream, avro.io.DatumReader())
+				for datum in reader:
+					MonitorDataObject = datum
+				AvroByteStream.close()
+				reader.close()
+				FileRecordObject['MonitorData'] = MonitorDataObject
+			except Exception as e:
+				IbDataSifterUtilities.LogError('Exception in DeserializeObect: ' + str(e))
+			DataFileObject['FileRecordList'].append(FileRecordObject)
+	FileToImport.close()
+	SharedVars.ImportedDataFileList.append(DataFileObject)
