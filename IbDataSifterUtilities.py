@@ -31,17 +31,45 @@ def DecodeStringToBytes(String):
 					if Char == 'x':
 						# it's the x of '\xnn' so ignore it and move on to collect the two hex digits following
 						DecodeCounter = 2
+					elif Char == 'a':
+						# it's the a of a 'Bell' ('\a') so declare an ASCII BEL byte
+						ReturnBytes.append(7)
+						DecodeCounter = 0
+					elif Char == 'b':
+						# it's the b of a backspace ('\b') so declare an ASCII BS byte
+						ReturnBytes.append(8)
+						DecodeCounter = 0
+					elif Char == 't':
+						# it's the t of a tab ('\t') so declare an ASCII TAB byte
+						ReturnBytes.append(9)
+						DecodeCounter = 0
 					elif Char == 'n':
-						# it's the n of a newline ('\n') so declare a byte value of 10 (linefeed)
+						# it's the n of a newline ('\n') so declare an ASCII LF byte
 						ReturnBytes.append(10)
+						DecodeCounter = 0
+					elif Char == 'v':
+						# it's the v of a vertical tab ('\v') so declare an ASCII VT byte
+						ReturnBytes.append(11)
+						DecodeCounter = 0
+					elif Char == 'f':
+						# it's the f of a form feed ('\f') so declare an ASCII FF byte
+						ReturnBytes.append(12)
 						DecodeCounter = 0
 					elif Char == 'r':
-						# it's the r of a carriage return ('\r') so declare a byte value of 13 (CR)
-						ReturnBytes.append(10)
+						# it's the r of a carriage return ('\r') so declare an ASCII CR byte
+						ReturnBytes.append(13)
+						DecodeCounter = 0
+					elif Char == '"':
+						# it's the double quote of an escaped double quote so declare an ASCII double quote character code byte
+						ReturnBytes.append(34)
+						DecodeCounter = 0
+					elif Char == '\'':
+						# it's the single quote of an escaped single quote so declare an ASCII single quote character code byte
+						ReturnBytes.append(39)
 						DecodeCounter = 0
 					elif Char == '\\':
-						# it's the second backslash of an escaped backslash character so declare a single backslash byte
-						ReturnBytes.append(ord('\\'))
+						# it's the second backslash of an escaped backslash character so declare an ASCII backslash byte
+						ReturnBytes.append(92)
 						DecodeCounter = 0
 					else:
 						#else we got a not-yet-known escaped sequence so

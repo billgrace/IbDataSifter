@@ -1,4 +1,5 @@
-import tkinter
+import tkinter as tk
+from tkinter import ttk
 import avro.schema
 import IbDataSifterClasses
 import IbDataSifterGui
@@ -34,29 +35,31 @@ GuiLogDateListBoxLeftX = 0.01
 GuiLogFilesListBoxLeftX = 0.21
 GuiUnderlyingSummaryLeftX = 0.51
 GuiRefreshInterval = 300
-GuiWindow = tkinter.Tk()
+GuiWindow = tk.Tk()
 
 # Gui - Directory paths
-GuiInputPathLabel = tkinter.Label(GuiWindow)
-GuiOutputPathLabel = tkinter.Label(GuiWindow)
+GuiInputPathLabel = tk.Label(GuiWindow)
+GuiOutputPathLabel = tk.Label(GuiWindow)
 
 # Gui - Logged data selection and display
-GuiLogDateListBoxLabel = tkinter.Label(GuiWindow, text='Logged data dates')
-GuiLogDateListBox = tkinter.Listbox(GuiWindow)
-GuiLogFilesListBoxLabel = tkinter.Label(GuiWindow, text='Files logged on - - -')
-GuiUnderlyingLabel = tkinter.Label(GuiWindow, text='Underlying: open=1234.56, high=1234.56, low=1234.56, close=1234.56')
-GuiLogFilesListBox = tkinter.Listbox(GuiWindow)
-GuiStrikePriceListBoxLabel = tkinter.Label(GuiWindow, text='Strike prices')
-GuiStrikePriceListBox = tkinter.Listbox(GuiWindow)
-GuiExpirationDateListBoxLabel = tkinter.Label(GuiWindow, text='Expiration dates')
-GuiExpirationDateListBox = tkinter.Listbox(GuiWindow)
+GuiLogDateListBoxLabel = tk.Label(GuiWindow, text='Logged data dates')
+GuiLogDateListBox = tk.Listbox(GuiWindow)
+GuiLogFilesListBoxLabel = tk.Label(GuiWindow, text='Files logged on - - -')
+GuiUnderlyingLabel = tk.Label(GuiWindow, text='Underlying: open=1234.56, high=1234.56, low=1234.56, close=1234.56')
+GuiLogFilesListBox = tk.Listbox(GuiWindow)
+GuiStrikePriceListBoxLabel = tk.Label(GuiWindow, text='Strike prices')
+GuiStrikePriceListBox = tk.Listbox(GuiWindow)
+GuiExpirationDateListBoxLabel = tk.Label(GuiWindow, text='Expiration dates')
+GuiExpirationDateListBox = tk.Listbox(GuiWindow)
 
 # Gui - Sifting
-GuiSiftButton = tkinter.Button(GuiWindow, text='Sift', command=IbDataSifterGui.GuiSiftButton_Clicked)
+GuiSiftButton = tk.Button(GuiWindow, text='Sift', command=IbDataSifterGui.GuiSiftButton_Clicked)
 
 # Gui - Miscellaneous
-GuiDevelopmentMessageLabel = tkinter.Label(GuiWindow, text='(development message space)', fg='#055', bg='#8ff')
-GuiExitButton = tkinter.Button(GuiWindow, text='Exit', command=IbDataSifterGui.ExitGui)
+GuiProgressBarLabel = tk.Label(GuiWindow)
+GuiProgressBar = tk.ttk.Progressbar(GuiWindow, orient='horizontal')
+GuiDevelopmentMessageLabel = tk.Label(GuiWindow, text='(development message space)', fg='#055', bg='#8ff')
+GuiExitButton = tk.Button(GuiWindow, text='Exit', command=IbDataSifterGui.ExitGui)
 
 # Schemas
 MonitorDataReaderSchema = avro.schema.Parse(open("schemas/MonitorDataReaderSchema.txt").read())

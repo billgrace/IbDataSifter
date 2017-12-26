@@ -1,5 +1,6 @@
 import time
 import tkinter
+from tkinter import ttk
 
 import IbDataSifter
 import IbDataSifterClasses
@@ -39,6 +40,9 @@ def PrepareGui():
 	SharedVars.GuiSiftButton.place(anchor='se', relx=0.85, rely=0.99)
 
 	# Miscellaneous
+	GuiProgressBarRely = 0.95
+	SharedVars.GuiProgressBarLabel.place(anchor='sw', relx=0.01,rely=GuiProgressBarRely)
+	SharedVars.GuiProgressBar.place(anchor='sw', relx=0.21,rely=GuiProgressBarRely)
 	SharedVars.GuiDevelopmentMessageLabel.place(anchor='sw', relx=0.01,rely=0.99)
 	SharedVars.GuiExitButton.place(anchor='se', relx=0.99, rely=0.99)
 
@@ -83,3 +87,13 @@ def ExitGui():
 	SharedVars.BackgroundRunning = False
 	SharedVars.GuiWindow.destroy()
 
+def InitializeProgressBar(LabelText):
+	SharedVars.GuiProgressBarLabel.configure(text = LabelText)
+	SharedVars.GuiProgressBar['value'] = 0.0
+
+def UpdateProgressBar(PercentageComplete):
+	SharedVars.GuiProgressBar['value'] = PercentageComplete
+
+def CloseProgressBar():
+	SharedVars.GuiProgressBarLabel.configure(text='')
+	SharedVars.GuiProgressBar['value'] = 0.0

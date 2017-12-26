@@ -64,4 +64,6 @@ class LoggedDataRecordClass(dict):
 class ImportedDataFileClass(dict):
 	def __init__(self):
 		self['FileName'] = ''
+		self['FirstValidRecordIndex'] = 0
+		self['LastValidRecordIndex'] = 0
 		self['FileRecordList'] = []
