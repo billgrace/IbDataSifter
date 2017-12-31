@@ -59,11 +59,12 @@ def SelectLogDate(SelectedDateText):
 	SharedVars.CurrentlyOpenTradedDayDirectory = SelectedDateText
 	SharedVars.LogDateDirectoryPath = SharedVars.InputDirectoryPath + '/' + SelectedDateText
 	LogDateFileList = os.listdir(SharedVars.LogDateDirectoryPath)
-	LogDateFileList.sort()
+	LogDateFileList.sort(reverse=True)
 	# Scan the sorted list of all files and extract items of interest
 	SharedVars.LoggedFilesInCurrentDate.clear()
 	SharedVars.LoggedStrikePricesInCurrentDate.clear()
 	SharedVars.LoggedExpirationDatesInCurrentDate.clear()
+	SharedVars.TimestampsInCurrentFile.clear()
 	for EachFile in LogDateFileList:
 		# Make a global copy of all the files in the directory
 		SharedVars.LoggedFilesInCurrentDate.append(EachFile)
@@ -93,58 +94,81 @@ def SelectLogDate(SelectedDateText):
 	SharedVars.LoggedExpirationDatesInCurrentDate.sort()
 	# Show the list of files in this date's directory
 	IbDataSifterGui.GuiFillLoggedFilesListBox(SelectedDateText)
-	# Import all the data files for the selected date
 	ImportLoggedDataDate(SelectedDateText)
 	# Show the date's logged underlying open, high, low, close
-	for ImportedFileObject in SharedVars.ImportedDataFileList:
-		if ImportedFileObject['FileName'] == 'SPX-Underlying':
-			ImportedUnderlyingRecordList = ImportedFileObject['FileRecordList']
-			FirstImportedMonitorData = ImportedUnderlyingRecordList[0]['MonitorData']
-			UnderlyingOpen = ImportedUnderlyingRecordList[0]['MonitorData']['Last']['Price']
-			UnderlyingClose = ImportedUnderlyingRecordList[-1]['MonitorData']['Last']['Price']
-			UnderlyingHigh = -1000000.0
-			UnderlyingLow = 1000000.0
-			for ImportedFileRecord in ImportedFileObject['FileRecordList']:
-				RecordPrice = ImportedFileRecord['MonitorData']['Last']['Price']
-				if RecordPrice > UnderlyingHigh:
-					UnderlyingHigh = RecordPrice
-				if RecordPrice < UnderlyingLow:
-					UnderlyingLow = RecordPrice
-	SharedVars.GuiUnderlyingLabel.configure(text='SPX Open: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingOpen) +
-													', High: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingHigh) +
-													', Low: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingLow) +
-													', Close: ' + IbDataSifterUtilities.StringFormatDollars(UnderlyingClose)
-													)
+	UnderlyingIsCached, UnderlyingCacheIndex = FindDataFileInCache('SPX-Underlying')
+	UnderlyingCachedFileObject = SharedVars.ImportedDataFileCache[UnderlyingCacheIndex]
+	CachedUnderlyingRecordList = UnderlyingCachedFileObject['FileRecordList']
+	for Record in CachedUnderlyingRecordList:
+		if Record['RecordAppearsValid']:
+			UnderlyingOpen = Record['MonitorData']['Last']['Price']
+			break;
+	UnderlyingClose = CachedUnderlyingRecordList[-1]['MonitorData']['Last']['Price']
+	UnderlyingHigh = -1000000.0
+	UnderlyingLow = 1000000.0
+	SharedVars.ValidRecordIndexesInCurrentFile.clear()
+	RecordIndex = -1
+	for Record in CachedUnderlyingRecordList:
+		RecordIndex += 1
+		if Record['RecordAppearsValid'] == True:
+			SharedVars.TimestampsInCurrentFile.append(Record['TimeStamp'])
+			SharedVars.ValidRecordIndexesInCurrentFile.append(RecordIndex)
+			RecordPrice = Record['MonitorData']['Last']['Price']
+			if RecordPrice > UnderlyingHigh:
+				UnderlyingHigh = RecordPrice
+			if RecordPrice < UnderlyingLow:
+				UnderlyingLow = RecordPrice
+	IbDataSifterGui.GuiShowUnderlyingSummary(UnderlyingOpen, UnderlyingHigh, UnderlyingLow, UnderlyingClose)
 	# Show the date's logged option strike price range
 	IbDataSifterGui.GuiFillStrikePriceListBox()
 	# Show the date's logged option expiration dates
 	IbDataSifterGui.GuiFillExpirationDateListBox()
+	# # Show the selected file's timestamp list
+	# IbDataSifterGui.GuiFillTimestampListBox()
 
 def SelectLogFile(FileName):
-	# Distinguish between underlying and option
+	SharedVars.TimestampsInCurrentFile.clear()
 	Symbol, ExpirationString, Year, Month, Day, Strike, Right = IbDataSifterUtilities.ParseFileName(FileName)
-	SharedVars.GuiDevelopmentMessageLabel.configure(text='[' + Symbol + '][' + ExpirationString + '][' + Year + '][' + Month + '][' + Day + '][' + Strike + '][' + Right + ']')
+	IbDataSifterGui.GuiShowDevelopmentMessage('[' + Symbol + '][' + ExpirationString + '][' + Year + '][' + Month + '][' + Day + '][' + Strike + '][' + Right + ']')
+	ImportLoggedDataFile(FileName)
+	# Show the selected file's timestamp list
+	IbDataSifterGui.GuiFillTimestampListBox()
 
 def ImportLoggedDataDate(SelectedDateText):
-	ClearImportedDataFileList()
-	ImportLoggedDataFile('SPX-Underlying')
+	ClearImportedDataFileCache()
+	IbDataSifterGui.GuiClearUnderlyingSummary()
+	# ImportLoggedDataFile('SPX-Underlying')
+	SharedVars.GuiLogFilesListBox.select_set(0)
+	SelectLogFile('SPX-Underlying')
 
-def ClearImportedDataFileList():
+def ClearImportedDataFileCache():
 	# First traverse any existing imported file entries and delete each one's list of file records
-	for ImportedFile in SharedVars.ImportedDataFileList:
+	for ImportedFile in SharedVars.ImportedDataFileCache:
 		ImportedFile['FileRecordList'].clear()
 	# Then delete the top level list
-	SharedVars.ImportedDataFileList.clear()
+	SharedVars.ImportedDataFileCache.clear()
+
+def FindDataFileInCache(FileName):
+	for CacheIndex in range(0, len(SharedVars.ImportedDataFileCache)):
+		if SharedVars.ImportedDataFileCache[CacheIndex]['FileName'] == FileName:
+			return True, CacheIndex
+	return False, 0
+
 
 def ImportLoggedDataFile(FileName):
+	# First check to see if this file is already in our cache
+	FileIsCached, CacheIndexOfThisDataFile = FindDataFileInCache(FileName)
+	if FileIsCached:
+		return CacheIndexOfThisDataFile
+	# OK, it's not already in memory cache so import it from storage
 	DataFileObject = IbDataSifterClasses.ImportedDataFileClass()
 	DataFileObject['FileName'] = FileName
 	FileToImportPathName = SharedVars.LogDateDirectoryPath + '/' + FileName
 	try:
 		FileToImport = open(FileToImportPathName, 'r')
 	except Exception as e:
-		# for now, just ignore empty directories
-		SharedVars.ImportedDataFileList.append(DataFileObject)
+		# for now, just ignore the issue of empty directories
+		SharedVars.ImportedDataFileCache.append(DataFileObject)
 		return
 	SizeOfFileToImport = os.path.getsize(FileToImportPathName)
 	CurrentPositionInFileToImport = 0
@@ -155,9 +179,8 @@ def ImportLoggedDataFile(FileName):
 		LineNumber += 1
 		IbDataSifterGui.UpdateProgressBar((CurrentPositionInFileToImport/SizeOfFileToImport)*100)
 		if LineNumber % 100 == 0:
-			SharedVars.GuiDevelopmentMessageLabel.configure(text='Record ' + str(LineNumber))
+			IbDataSifterGui.GuiShowDevelopmentMessage('Record ' + str(LineNumber))
 			SharedVars.GuiWindow.update()
-		# if LineNumber <= 10:
 		FileRecordObject = IbDataSifterClasses.LoggedDataRecordClass()
 		MonitorDataObject = IbDataSifterClasses.MonitorDataClass()
 		try:
@@ -177,16 +200,21 @@ def ImportLoggedDataFile(FileName):
 			AvroByteStream.close()
 			reader.close()
 			FileRecordObject['MonitorData'] = MonitorDataObject
+			FileRecordObject['RecordAppearsValid'] = UnderlyingRecordIsValid(MonitorDataObject)
 		except Exception as e:
 			IbDataSifterUtilities.LogError('Exception in DeserializeObect: ' + str(e))
 		DataFileObject['FileRecordList'].append(FileRecordObject)
 	IbDataSifterGui.CloseProgressBar()
 	FileToImport.close()
-	SharedVars.ImportedDataFileList.append(DataFileObject)
+	SharedVars.ImportedDataFileCache.append(DataFileObject)
+	FileIsCached, CacheIndexOfThisDataFile = FindDataFileInCache(FileName)
+	return CacheIndexOfThisDataFile
 
 def UnderlyingRecordIsValid(RecordObject):
-	a=1
-	return False
+	if RecordObject['Last']['Price'] > 0.009:
+		return True
+	else:
+		return False
 
 def OptionRecordIsValid(RecordObject):
 	a=1

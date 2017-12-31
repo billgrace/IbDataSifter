@@ -4,9 +4,9 @@ import IbDataSifterEnums
 class ExpirationDateClass(dict):
 	def __init__(self):
 	# def __init__(self, *args, **kwargs):
-		self['year'] = 1
+		self['year'] = 2016
 		self['month'] = 1
-		self['day'] = 2016
+		self['day'] = 1
 
 class OptionCompStructureClass(dict):
 	def __init__(self):
@@ -60,10 +60,9 @@ class LoggedDataRecordClass(dict):
 	def __init__(self):
 		self['TimeStamp'] = LoggedDataRecordTimeStampClass()
 		self['MonitorData'] = MonitorDataClass()
+		self['RecordAppearsValid'] = False
 
 class ImportedDataFileClass(dict):
 	def __init__(self):
 		self['FileName'] = ''
-		self['FirstValidRecordIndex'] = 0
-		self['LastValidRecordIndex'] = 0
 		self['FileRecordList'] = []

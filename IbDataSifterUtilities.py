@@ -157,7 +157,7 @@ def LogError(message):
 	ErrorTimeStamp = datetime.datetime.now()
 	ErrorTimeString = '{0:%A} {0:%B} {0:%d}, {0:%Y} @ {0:%I:%M%p} '.format(ErrorTimeStamp)
 	FormattedErrorString = ErrorTimeString + message
-	SharedVars.GuiDevelopmentMessageLabel.config(text=FormattedErrorString)
+	IbDataSifterGui.GuiShowDevelopmentMessage(FormattedErrorString)
 	print(FormattedErrorString)
 
 def StringFormatDollars(FloatAmount):
@@ -165,3 +165,6 @@ def StringFormatDollars(FloatAmount):
 
 def StringFormatGreek(FloatAmount):
 	return '{:,0.4f}'.format(FloatAmount)
+
+def StringFormatTimestamp(Timestamp):
+	return '{Hour:02d}:{Minute:02d}:{Second:02d}.{Millisecond:03d}'.format(**Timestamp)
