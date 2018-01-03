@@ -98,7 +98,10 @@ def GuiFillExpirationDateListBox():
 
 def GuiFillTimestampListBox():
 	SharedVars.GuiTimestampListBox.delete(0, tkinter.END)
-	for Timestamp in SharedVars.TimestampsInCurrentFile:
+	SelectedFile = SharedVars.ImportedDataFileCache[SharedVars.SelectedFileCacheIndex]
+	for ValidIndex in SelectedFile['ValidRecordIndexList']:
+		ValidFileRecord = SelectedFile['FileRecordList'][ValidIndex]
+		Timestamp = ValidFileRecord['Timestamp']
 		SharedVars.GuiTimestampListBox.insert(tkinter.END, IbDataSifterUtilities.StringFormatTimestamp(Timestamp))
 
 def GuiTimestampListBoxCallBack(ListboxEvent):

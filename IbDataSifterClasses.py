@@ -49,7 +49,7 @@ class MonitorDataClass(dict):
 		self['Low'] = 0.0
 		self['Close'] = 0.0
 
-class LoggedDataRecordTimeStampClass(dict):
+class LoggedDataRecordTimestampClass(dict):
 	def __init__(self):
 		self['Hour'] = 1
 		self['Minute'] = 1
@@ -58,7 +58,7 @@ class LoggedDataRecordTimeStampClass(dict):
 
 class LoggedDataRecordClass(dict):
 	def __init__(self):
-		self['TimeStamp'] = LoggedDataRecordTimeStampClass()
+		self['Timestamp'] = LoggedDataRecordTimestampClass()
 		self['MonitorData'] = MonitorDataClass()
 		self['RecordAppearsValid'] = False
 
@@ -66,3 +66,4 @@ class ImportedDataFileClass(dict):
 	def __init__(self):
 		self['FileName'] = ''
 		self['FileRecordList'] = []
+		self['ValidRecordIndexList'] = []

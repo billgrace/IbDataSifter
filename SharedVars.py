@@ -9,17 +9,19 @@ InputDirectoryPath = ''
 OutputDirectoryPath = ''
 
 # Storage items
+LogDateDirectoryPath = ''
 TradedDayDirectories = []
+ImportedDataFileCache = []
 CurrentlyOpenTradedDayDirectory = 'YYYY-MM-DD'
 LoggedFilesInCurrentDate = []
 LoggedStrikePricesInCurrentDate = []
 LoggedExpirationDatesInCurrentDate = []
-TimestampsInCurrentFile = []
-ValidRecordIndexesInCurrentFile = []
+SelectedFileCacheIndex = 0
+# TimestampsInCurrentFile = []
+# The following list is all indexes of valid records in the list of ALL records in a file
+# ValidRecordIndexesInCurrentFile = []
 
-# Imported data
-LogDateDirectoryPath = ''
-ImportedDataFileCache = []
+# Underlying summary
 UnderlyingOpen = 0.0
 UnderlyingHigh = 0.0
 UnderlyingLow = 0.0

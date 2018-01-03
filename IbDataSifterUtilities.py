@@ -154,8 +154,8 @@ def OnShiftF4KeyPress(KeyPressEvent):
 	SharedVars.GuiWindow.destroy()
 
 def LogError(message):
-	ErrorTimeStamp = datetime.datetime.now()
-	ErrorTimeString = '{0:%A} {0:%B} {0:%d}, {0:%Y} @ {0:%I:%M%p} '.format(ErrorTimeStamp)
+	ErrorTimestamp = datetime.datetime.now()
+	ErrorTimeString = '{0:%A} {0:%B} {0:%d}, {0:%Y} @ {0:%I:%M%p} '.format(ErrorTimestamp)
 	FormattedErrorString = ErrorTimeString + message
 	IbDataSifterGui.GuiShowDevelopmentMessage(FormattedErrorString)
 	print(FormattedErrorString)

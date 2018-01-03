@@ -55,7 +55,10 @@ def ReadPreferencesFile():
 		IbDataSifterUtilities.LogError('unable to open Preferences.cfg - ' + str(e))
 
 def SelectLogDate(SelectedDateText):
-	# Get the list of all files in the given date's directory
+	# Empty out any previously cached date's data
+	ClearImportedDataFileCache()
+
+	# Get the list of all files in the given trading day's directory
 	SharedVars.CurrentlyOpenTradedDayDirectory = SelectedDateText
 	SharedVars.LogDateDirectoryPath = SharedVars.InputDirectoryPath + '/' + SelectedDateText
 	LogDateFileList = os.listdir(SharedVars.LogDateDirectoryPath)
@@ -64,16 +67,16 @@ def SelectLogDate(SelectedDateText):
 	SharedVars.LoggedFilesInCurrentDate.clear()
 	SharedVars.LoggedStrikePricesInCurrentDate.clear()
 	SharedVars.LoggedExpirationDatesInCurrentDate.clear()
-	SharedVars.TimestampsInCurrentFile.clear()
+	# SharedVars.TimestampsInCurrentFile.clear()
 	for EachFile in LogDateFileList:
-		# Make a global copy of all the files in the directory
+		# Keep a global copy of the names of all the files in this trading day's directory
 		SharedVars.LoggedFilesInCurrentDate.append(EachFile)
-		# Break out the information contained in the file name
+		# Distill out and make lists of the date's option strike prices and expiration dates
 		Symbol, ExpirationString, Year, Month, Day, Strike, Right = IbDataSifterUtilities.ParseFileName(EachFile)
 		# Skip over the underlying's file and make lists of the option files
 		if 'Underlying' == ExpirationString:
 			continue
-		# Build a global list of the strike prices
+		# Strike prices
 		StrikeAlreadyOnList = False
 		for ListStrike in SharedVars.LoggedStrikePricesInCurrentDate:
 			if ListStrike == Strike:
@@ -82,7 +85,7 @@ def SelectLogDate(SelectedDateText):
 		if not StrikeAlreadyOnList:
 			SharedVars.LoggedStrikePricesInCurrentDate.append(Strike)
 		SharedVars.LoggedStrikePricesInCurrentDate.sort()
-		# Build a global list of the expiration dates
+		# Expiration dates
 		ExpirationAlreadyOnList = False
 		for ListExpiration in SharedVars.LoggedExpirationDatesInCurrentDate:
 			if ListExpiration == ExpirationString:
@@ -92,10 +95,22 @@ def SelectLogDate(SelectedDateText):
 			SharedVars.LoggedExpirationDatesInCurrentDate.append(ExpirationString)
 	SharedVars.LoggedStrikePricesInCurrentDate.sort()
 	SharedVars.LoggedExpirationDatesInCurrentDate.sort()
-	# Show the list of files in this date's directory
+
+	# Show the lists of all files, strike prices and expiration dates in this trading day's directory
 	IbDataSifterGui.GuiFillLoggedFilesListBox(SelectedDateText)
-	ImportLoggedDataDate(SelectedDateText)
-	# Show the date's logged underlying open, high, low, close
+	# Show the date's logged option strike price range
+	IbDataSifterGui.GuiFillStrikePriceListBox()
+	# Show the date's logged option expiration dates
+	IbDataSifterGui.GuiFillExpirationDateListBox()
+
+	# Read and cache the underlying's complete data file
+	IbDataSifterGui.GuiClearUnderlyingSummary()
+	# Mark the underlying's data file as selected in the list box of filenames for this trading day
+	SharedVars.GuiLogFilesListBox.select_set(0)
+	# Import the data for the underlying file
+	SelectLogFile('SPX-Underlying')
+
+	# Show the trading day's underlying open, high, low & close
 	UnderlyingIsCached, UnderlyingCacheIndex = FindDataFileInCache('SPX-Underlying')
 	UnderlyingCachedFileObject = SharedVars.ImportedDataFileCache[UnderlyingCacheIndex]
 	CachedUnderlyingRecordList = UnderlyingCachedFileObject['FileRecordList']
@@ -106,40 +121,26 @@ def SelectLogDate(SelectedDateText):
 	UnderlyingClose = CachedUnderlyingRecordList[-1]['MonitorData']['Last']['Price']
 	UnderlyingHigh = -1000000.0
 	UnderlyingLow = 1000000.0
-	SharedVars.ValidRecordIndexesInCurrentFile.clear()
+	# SharedVars.ValidRecordIndexesInCurrentFile.clear()
 	RecordIndex = -1
 	for Record in CachedUnderlyingRecordList:
 		RecordIndex += 1
 		if Record['RecordAppearsValid'] == True:
-			SharedVars.TimestampsInCurrentFile.append(Record['TimeStamp'])
-			SharedVars.ValidRecordIndexesInCurrentFile.append(RecordIndex)
+			# SharedVars.TimestampsInCurrentFile.append(Record['Timestamp'])
+			# SharedVars.ValidRecordIndexesInCurrentFile.append(RecordIndex)
 			RecordPrice = Record['MonitorData']['Last']['Price']
 			if RecordPrice > UnderlyingHigh:
 				UnderlyingHigh = RecordPrice
 			if RecordPrice < UnderlyingLow:
 				UnderlyingLow = RecordPrice
 	IbDataSifterGui.GuiShowUnderlyingSummary(UnderlyingOpen, UnderlyingHigh, UnderlyingLow, UnderlyingClose)
-	# Show the date's logged option strike price range
-	IbDataSifterGui.GuiFillStrikePriceListBox()
-	# Show the date's logged option expiration dates
-	IbDataSifterGui.GuiFillExpirationDateListBox()
-	# # Show the selected file's timestamp list
-	# IbDataSifterGui.GuiFillTimestampListBox()
 
 def SelectLogFile(FileName):
-	SharedVars.TimestampsInCurrentFile.clear()
+	# SharedVars.TimestampsInCurrentFile.clear()
 	Symbol, ExpirationString, Year, Month, Day, Strike, Right = IbDataSifterUtilities.ParseFileName(FileName)
 	IbDataSifterGui.GuiShowDevelopmentMessage('[' + Symbol + '][' + ExpirationString + '][' + Year + '][' + Month + '][' + Day + '][' + Strike + '][' + Right + ']')
-	ImportLoggedDataFile(FileName)
-	# Show the selected file's timestamp list
+	SharedVars.SelectedFileCacheIndex = ImportLoggedDataFile(FileName)
 	IbDataSifterGui.GuiFillTimestampListBox()
-
-def ImportLoggedDataDate(SelectedDateText):
-	ClearImportedDataFileCache()
-	IbDataSifterGui.GuiClearUnderlyingSummary()
-	# ImportLoggedDataFile('SPX-Underlying')
-	SharedVars.GuiLogFilesListBox.select_set(0)
-	SelectLogFile('SPX-Underlying')
 
 def ClearImportedDataFileCache():
 	# First traverse any existing imported file entries and delete each one's list of file records
@@ -153,7 +154,6 @@ def FindDataFileInCache(FileName):
 		if SharedVars.ImportedDataFileCache[CacheIndex]['FileName'] == FileName:
 			return True, CacheIndex
 	return False, 0
-
 
 def ImportLoggedDataFile(FileName):
 	# First check to see if this file is already in our cache
@@ -184,13 +184,13 @@ def ImportLoggedDataFile(FileName):
 		FileRecordObject = IbDataSifterClasses.LoggedDataRecordClass()
 		MonitorDataObject = IbDataSifterClasses.MonitorDataClass()
 		try:
-			TimeStampString, AvroStringWithByteTags = Line.split('---')
-			TimeStampObject = IbDataSifterClasses.LoggedDataRecordTimeStampClass()
-			TimeStampObject['Hour'] = int(TimeStampString[0:2])
-			TimeStampObject['Minute'] = int(TimeStampString[3:5])
-			TimeStampObject['Second'] = int(TimeStampString[6:8])
-			TimeStampObject['Millisecond'] = int(TimeStampString[9:12])
-			FileRecordObject['TimeStamp'] = TimeStampObject
+			TimestampString, AvroStringWithByteTags = Line.split('---')
+			TimestampObject = IbDataSifterClasses.LoggedDataRecordTimestampClass()
+			TimestampObject['Hour'] = int(TimestampString[0:2])
+			TimestampObject['Minute'] = int(TimestampString[3:5])
+			TimestampObject['Second'] = int(TimestampString[6:8])
+			TimestampObject['Millisecond'] = int(TimestampString[9:12])
+			FileRecordObject['Timestamp'] = TimestampObject
 			AvroString = AvroStringWithByteTags[2:-2]
 			AvroByteArray = IbDataSifterUtilities.DecodeStringToBytes(AvroString)
 			AvroByteStream = io.BytesIO(AvroByteArray)
@@ -202,8 +202,10 @@ def ImportLoggedDataFile(FileName):
 			FileRecordObject['MonitorData'] = MonitorDataObject
 			FileRecordObject['RecordAppearsValid'] = UnderlyingRecordIsValid(MonitorDataObject)
 		except Exception as e:
-			IbDataSifterUtilities.LogError('Exception in DeserializeObect: ' + str(e))
+			IbDataSifterUtilities.LogError('Exception in ImportLoggedDataFile: ' + str(e))
 		DataFileObject['FileRecordList'].append(FileRecordObject)
+		if FileRecordObject['RecordAppearsValid']:
+			DataFileObject['ValidRecordIndexList'].append(LineNumber - 1)
 	IbDataSifterGui.CloseProgressBar()
 	FileToImport.close()
 	SharedVars.ImportedDataFileCache.append(DataFileObject)
