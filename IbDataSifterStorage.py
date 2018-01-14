@@ -139,6 +139,7 @@ def SelectLogFile(FileName):
 	# SharedVars.TimestampsInCurrentFile.clear()
 	Symbol, ExpirationString, Year, Month, Day, Strike, Right = IbDataSifterUtilities.ParseFileName(FileName)
 	IbDataSifterGui.GuiShowDevelopmentMessage('[' + Symbol + '][' + ExpirationString + '][' + Year + '][' + Month + '][' + Day + '][' + Strike + '][' + Right + ']')
+	SharedVars.GuiFrdFilenameDisplay.configure(text=FileName)
 	SharedVars.SelectedFileCacheIndex = ImportLoggedDataFile(FileName)
 	IbDataSifterGui.GuiFillTimestampListBox()
 

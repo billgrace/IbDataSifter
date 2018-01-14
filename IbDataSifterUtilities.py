@@ -161,10 +161,18 @@ def LogError(message):
 	print(FormattedErrorString)
 
 def StringFormatDollars(FloatAmount):
+	if FloatAmount > 999999999999.0:
+		return '**++**'
+	if FloatAmount < -999999999999.0:
+		return '**--**'
 	return '${:,.2f}'.format(FloatAmount)
 
 def StringFormatGreek(FloatAmount):
-	return '{:,0.4f}'.format(FloatAmount)
+	if FloatAmount > 1000:
+		return '**++**'
+	if FloatAmount < -1000:
+		return '**--**'
+	return '{:,.4f}'.format(FloatAmount)
 
 def StringFormatTimestamp(Timestamp):
 	return '{Hour:02d}:{Minute:02d}:{Second:02d}.{Millisecond:03d}'.format(**Timestamp)
